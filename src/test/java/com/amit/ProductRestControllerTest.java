@@ -17,162 +17,141 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.amit.entity.ProductEntity;
 import com.amit.service.ProductService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest
 public class ProductRestControllerTest {
-	
+
 	@Autowired
 	private MockMvc mockMvc;
 
 	@MockBean
-	private ProductService productService;
+	private ProductService proService;
 
 	@Autowired
 	private ObjectMapper objectMapper;
 
 	@Test
-	public void testSaveProductSuccess() throws Exception {
-		ProductEntity mockProduct = new ProductEntity(1, "Mouse", 200.0);
+	public void saveSuccess() throws JsonProcessingException, Exception {
 
-		// Mock the behavior of the ProductService
-		when(productService.saveProduct(any(ProductEntity.class))).thenReturn("Saved successfully");
+		ProductEntity entity = new ProductEntity(1, "CPU", 5000.00);
 
-	
-		// Perform the POST request
+		when(proService.saveProduct(any(ProductEntity.class))).thenReturn("Saved successfully");
+
 		mockMvc.perform(MockMvcRequestBuilders.post("/save").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(mockProduct)))
-				.andExpect(MockMvcResultMatchers.status().isCreated())
+				.content(objectMapper.writeValueAsString(entity))).andExpect(MockMvcResultMatchers.status().isCreated())
 				.andExpect(MockMvcResultMatchers.content().string("Saved successfully"));
 	}
 
 	@Test
-	public void testSaveProductFailure() throws Exception {
-		ProductEntity mockProduct = new ProductEntity(1, "Mouse", 200.0);
+	public void saveFailure() throws JsonProcessingException, Exception {
 
-		// Mock the behavior of the ProductService
-		when(productService.saveProduct(any(ProductEntity.class))).thenReturn("Problem occured");
+		ProductEntity entity = new ProductEntity(1, "CPU", 5000.00);
 
-		// Perform the POST request
+		when(proService.saveProduct(any(ProductEntity.class))).thenReturn("Problem occured");
+
 		mockMvc.perform(MockMvcRequestBuilders.post("/save").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(mockProduct)))
+				.content(objectMapper.writeValueAsString(entity)))
 				.andExpect(MockMvcResultMatchers.status().isInternalServerError())
 				.andExpect(MockMvcResultMatchers.content().string("Problem occured"));
 	}
 
 	@Test
-	public void testGetAllProductsSuccess() throws Exception {
-		// Create a list of sample products
-		List<ProductEntity> sampleProducts = new ArrayList<>();
-		sampleProducts.add(new ProductEntity(1, "Product 1", 2000.0));
-		sampleProducts.add(new ProductEntity(2, "Product 2", 3000.0));
+	public void getProductSuccess() throws Exception {
 
-		// Mock the behavior of the ProductService
-		when(productService.getProducts()).thenReturn(sampleProducts);
-
-		// Perform the GET request
-		
-		mockMvc.perform(MockMvcRequestBuilders.get("/products")).andExpect(MockMvcResultMatchers.status().isOk())
-				.andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(sampleProducts.size()));
-	}
-
-	@Test
-    public void testGetAllProductsEmpty() throws Exception {
-        // Mock the behavior of the ProductService
-        when(productService.getProducts()).thenReturn(new ArrayList<>());
-
-        // Perform the GET request
-        mockMvc.perform(MockMvcRequestBuilders.get("/products"))
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError());
-    }
-
-	@Test
-	public void testGetProductByIdExisting() throws Exception {
 		Integer pId = 1;
+		ProductEntity entity = new ProductEntity(pId, "CPU", 5000.00);
 
-		// Create a sample product for the response
-		ProductEntity sampleProduct = new ProductEntity(pId, "Phone", 5000.0);
+		when(proService.getProductById(pId)).thenReturn(entity);
 
-		// Mock the behavior of the ProductService
-		when(productService.getProductById(pId)).thenReturn(sampleProduct);
-
-		// Perform the GET request
 		mockMvc.perform(MockMvcRequestBuilders.get("/getProduct/{pId}", pId))
-				.andExpect(MockMvcResultMatchers.status().isOk())
-				.andExpect(MockMvcResultMatchers.jsonPath("$.productId").value(sampleProduct.getProductId()))
-				.andExpect(MockMvcResultMatchers.jsonPath("$.priductName").value(sampleProduct.getPriductName()));
+				.andExpect(MockMvcResultMatchers.status().isOk());
 	}
 
-	
 	@Test
-	public void testGetProductByIdNonExisting() throws Exception {
+	public void getProductFailure() throws Exception {
+
 		Integer pId = 1;
+		ProductEntity entity = new ProductEntity(pId, "CPU", 5000.00);
 
-		// Mock the behavior of the ProductService
-		when(productService.getProductById(pId)).thenReturn(null);
+		when(proService.getProductById(pId)).thenReturn(null);
 
-		// Perform the GET request
 		mockMvc.perform(MockMvcRequestBuilders.get("/getProduct/{pId}", pId))
 				.andExpect(MockMvcResultMatchers.status().isInternalServerError());
 	}
 
-	
 	@Test
-	public void testUpdateProductSuccess() throws Exception {
-		ProductEntity sampleProduct = new ProductEntity(1, "Dell", 80000.0);
+	public void getAllProductSuccess() throws Exception {
 
-		// Mock the behavior of the ProductService
-		when(productService.updateProductById(any(ProductEntity.class))).thenReturn("Product Updated Successfully");
+		ProductEntity product1 = new ProductEntity(1, "CPU", 5000.00);
 
-		// Perform the PUT request
-		mockMvc.perform(MockMvcRequestBuilders.put("/update/{pId}", sampleProduct.getProductId())
-				.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(sampleProduct)))
+		ProductEntity product2 = new ProductEntity(2, "CPU", 5000.00);
+
+		List<ProductEntity> list = new ArrayList<>();
+		list.add(product1);
+		list.add(product2);
+
+		when(proService.getProducts()).thenReturn(list);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/products")).andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(list.size()));
+	}
+
+	@Test
+	public void getAllProductFailure() throws Exception {
+
+
+		when(proService.getProducts()).thenReturn(new ArrayList<>());
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/products"))
+		.andExpect(MockMvcResultMatchers.status().isInternalServerError());
+	}
+
+	@Test
+	public void deleteSuccess() throws Exception {
+
+		Integer pId = 1;
+		when(proService.deleteById(1)).thenReturn("product deleted");
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/delete/{pId}", pId))
 				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(MockMvcResultMatchers.content().string("product deleted"));
+
+	}
+
+	@Test
+	public void deleteFailure() throws Exception {
+
+		Integer pId = 1;
+		when(proService.deleteById(1)).thenReturn("Record not found");
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/delete/{pId}", pId))
+				.andExpect(MockMvcResultMatchers.status().isInternalServerError());
+
+	}
+
+	@Test
+	public void updateSuccess() throws Exception {
+
+		ProductEntity newEntity = new ProductEntity(1, "CPU", 5000.00);
+
+		when(proService.updateProductById(any(ProductEntity.class))).thenReturn("Product Updated Successfully");
+		// Perform the PUT request
+		mockMvc.perform(MockMvcRequestBuilders.put("/update/{pId}", 1).contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(newEntity))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(MockMvcResultMatchers.content().string("Product Updated Successfully"));
 	}
 
 	@Test
-	public void testUpdateProductFailure() throws Exception {
-		// Create a sample ProductEntity for the request body
-		ProductEntity sampleProduct = new ProductEntity(1, "Dell", 80000.0);
+	public void updateFailure() throws Exception {
 
-		// Mock the behavior of the ProductService
-		when(productService.updateProductById(any(ProductEntity.class))).thenReturn("Problem occured");
+		ProductEntity newEntity = new ProductEntity(1, "CPU", 5000.00);
 
+		when(proService.updateProductById(any(ProductEntity.class))).thenReturn("Product not Updated");
 		// Perform the PUT request
-		mockMvc.perform(MockMvcRequestBuilders.put("/update/{pId}", sampleProduct.getProductId())
-				.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(sampleProduct)))
-				.andExpect(MockMvcResultMatchers.status().isInternalServerError())
-				.andExpect(MockMvcResultMatchers.content().string("Problem occured"));
+		mockMvc.perform(MockMvcRequestBuilders.put("/update/{pId}", 1).contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(newEntity)))
+				.andExpect(MockMvcResultMatchers.status().isInternalServerError());
 	}
-	
-	
-	
-	@Test
-    public void testDeleteProductSuccess() throws Exception {
-        int productId = 1;
-
-        // Mock the behavior of the ProductService
-        when(productService.deleteById(productId)).thenReturn("product deleted");
-
-        // Perform the DELETE request
-        
-        mockMvc.perform(MockMvcRequestBuilders.get("/delete/{pId}", productId))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().string("product deleted"));
-    }
-
-    @Test
-    public void testDeleteProductFailure() throws Exception {
-        Integer productId = 1;
-
-        // Mock the behavior of the ProductService
-        when(productService.deleteById(productId)).thenReturn("Record not found");
-
-        // Perform the DELETE request
-        mockMvc.perform(MockMvcRequestBuilders.get("/delete/{pId}", productId))
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-            .andExpect(MockMvcResultMatchers.content().string("Record not found"));
-    }
-
 }

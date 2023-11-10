@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ public class ProductServiceImpl implements ProductService {
 
 	@Autowired
 	private ProductRepo pRepo;
+	
+	Logger logger=LogManager.getLogger(ProductServiceImpl.class);
 
 	@Override
 	public String saveProduct(ProductEntity data) {
@@ -71,10 +75,15 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public List<ProductEntity> getProducts() {
+		
+		logger.info("fetching all product information");
+		
 		List<ProductEntity> list = pRepo.findAll();
+		logger.info("we successfully getting all product information");
 		if (list.isEmpty()) {
 			return Collections.emptyList();
 		} else {
+			logger.info("no any  product information available");
 			return list;
 		}
 	}

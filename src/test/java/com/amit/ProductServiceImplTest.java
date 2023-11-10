@@ -1,9 +1,9 @@
 package com.amit;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -50,11 +50,9 @@ public class ProductServiceImplTest {
 		// Verify that the repository's save method was called
 		verify(productRepository).save(sampleProduct);
 	}
-
-
+	
 	@Test
 	public void testSaveProductFailure() {
-		// Create a sample ProductEntity for the request body
 		ProductEntity sampleProduct = new ProductEntity(1, "Laptop", 60000.0);
 		when(productRepository.save(any(ProductEntity.class))).thenReturn(null);
 
@@ -190,7 +188,6 @@ public class ProductServiceImplTest {
 
 		verify(productRepository, times(1)).findAll();
 
-		// Verify the result matches the sample products
 		assertEquals(Products.size(), result.size());
 		assertEquals(Products.get(0).getProductId(), result.get(0).getProductId());
 		assertEquals(Products.get(0).getPriductName(), result.get(0).getPriductName());
@@ -200,7 +197,7 @@ public class ProductServiceImplTest {
 
 	// if list of product is empty
 
-	@Test
+	    @Test
 	    public void testGetProductsEmptyList() {
 	        when(productRepository.findAll()).thenReturn(Collections.emptyList());
 
@@ -210,4 +207,6 @@ public class ProductServiceImplTest {
 	        assertTrue(result.isEmpty());
 	    }
 
+	
 }
+
